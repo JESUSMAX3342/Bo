@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boda: Momentos para la Novia y el Novio | Álbum Privado</title>
+    <!-- Fuentes elegantes Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-light: #F3E5AB;
+            --gold-dark: #996515;
+            --gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+            --bg-dark: #070a10;
+            --card-bg: rgba(15, 20, 32, 0.92);
+            --text-color: #f1f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Canvas de estrellas y anillos */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Botón discreto de Admin */
+        .top-admin-bar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 0;
+        }
+
+        .admin-trigger-btn {
+            background: transparent;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            color: var(--gold-light);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-trigger-btn:hover {
+            background: var(--gold-gradient);
+            color: var(--bg-dark);
+            border-color: transparent;
+            box-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+        }
+
+        header {
+            text-align: center;
+            padding: 10px 0 20px;
+        }
+
+        .wedding-rings-icon {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.6));
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--gold-light);
+            font-style: italic;
+        }
+
+        /* Tarjeta principal */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            margin: 20px 0;
+            text-align: center;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden { display: none !important; }
+
+        .guest-content h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--gold-light);
+            font-size: 1.9rem;
+            margin-bottom: 15px;
+        }
+
+        .guest-content p {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-size: 1.05rem;
+        }
+
+        .action-btn {
+            display: inline-block;
+            background: var(--gold-gradient);
+            color: var(--bg-dark);
+            font-weight: 700;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 35px;
+            font-size: 1.1rem;
+            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
+        }
+
+        /* Login Administrador */
+        .admin-login input {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 18px;
+            background: rgba(10, 14, 23, 0.9);
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-align: center;
+            outline: none;
+        }
+
+        .admin-login input:focus {
+            border-color: var(--gold-primary);
+        }
+
+        .security-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid #059669;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .admin-vault-box {
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px dashed var(--gold-primary);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            word-break: break-all;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px 0;
+            color: #64748b;
+            font-size: 0.85rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 12px; }
+            .card { padding: 30px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="container">
+        <!-- Acceso superior discreto a Admin -->
+        <div class="top-admin-bar">
+            <button class="admin-trigger-btn" onclick="toggleAdminPanel()">🔒 Admin</button>
+        </div>
+
+        <header>
+            <div class="wedding-rings-icon">💍✨</div>
+            <h1>Momentos para la Novia y el Novio</h1>
+            <p class="subtitle">Álbum Privado de Boda</p>
+        </header>
+
+        <main>
+            <!-- VISTA INVITADOS -->
+            <section id="guestView" class="card guest-content">
+                <h2>¡Comparte tus fotos con los novios!</h2>
+                <p>Presiona el botón para subir tus fotos y videos directamente a nuestra bóveda privada. Tus recuerdos se enviarán de forma segura y confidencial para la pareja.</p>
+                
+                <div>
+                    <!-- Botón de envío privado -->
+                    <a id="uploadFormBtn" href="#" target="_blank" class="action-btn">Subir Mis Fotos Ahora 📸</a>
+                </div>
+            </section>
+
+            <!-- VISTA ADMINISTRADOR -->
+            <section id="adminView" class="card hidden">
+                <div id="adminLoginBox" class="admin-login">
+                    <h2 style="font-family: 'Playfair Display', serif; color: var(--gold-light); margin-bottom: 10px;">Bóveda Privada</h2>
+                    <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px;">Ingresa el PIN de Administrador.</p>
+                    <input type="password" id="adminPin" placeholder="PIN Secreto" maxlength="10"><br>
+                    <button class="action-btn" onclick="verifyAdmin()" style="padding: 12px 30px; font-size: 1rem; margin-top: 5px;">Entrar</button>
+                    <p id="loginError" style="color: #f87171; font-size: 0.85rem; margin-top: 12px; display: none;">PIN incorrecto.</p>
+                </div>
+
+                <div id="adminDashboardBox" class="hidden">
+                    <h2 style="font-family: 'Playfair Display', serif; color: var(--gold-light); margin-bottom: 10px;">🛡️ Panel Maestro</h2>
+                    <div class="security-badge">Acceso Exclusivo del Dueño</div>
+                    <p style="color: #cbd5e1; margin-bottom: 15px; font-size: 0.95rem;">Aquí tienes acceso directo a la carpeta privada de Google Drive donde se almacenan todas las fotos enviadas por los invitados.</p>
+                    
+                    <div class="admin-vault-box">
+                        <a id="adminDriveUrl" href="#" target="_blank" class="action-btn" style="text-decoration: none;">Abrir Carpeta en Google Drive ↗</a>
+                    </div>
+
+                    <button class="admin-trigger-btn" onclick="lockAdmin()" style="border-color: #ef4444; color: #f87171; margin-top: 10px;">Cerrar Sesión</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 • Boda de la Novia y el Novio</p>
+        </footer>
+    </div>
+
+    <script>
+        // ================= CONFIGURACIÓN =================
+        // 1. Pega aquí el enlace de tu Formulario de Google Forms:
+        const UPLOAD_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSehkxF_-sbJYZ8N1014eqrCVqRHw6d4U23HEhojruKIqFlm8Q/viewform?usp=header";
+        
+        // 2. Pega aquí el enlace a tu carpeta de Google Drive privada:
+        const ADMIN_DRIVE_URL = "https://drive.google.com/drive/u/1/folders/1Q21LyVQAj5n9rFBgatWeXjJBbi1IH0X5IACOo8KlA87rGJbdS9xvI-xuzfIwYLKN9OutIlYX";
+        
+        // 3. Tu PIN de seguridad:
+        const ADMIN_PIN = "101026";
+        // =================================================
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("uploadFormBtn").href = UPLOAD_FORM_URL;
+            document.getElementById("adminDriveUrl").href = ADMIN_DRIVE_URL;
+        });
+
+        function toggleAdminPanel() {
+            const guestView = document.getElementById("guestView");
+            const adminView = document.getElementById("adminView");
+            guestView.classList.toggle("hidden");
+            adminView.classList.toggle("hidden");
+        }
+
+        function verifyAdmin() {
+            if (document.getElementById("adminPin").value === ADMIN_PIN) {
+                document.getElementById("adminLoginBox").classList.add("hidden");
+                document.getElementById("adminDashboardBox").classList.remove("hidden");
+                document.getElementById("loginError").style.display = "none";
+                document.getElementById("adminPin").value = "";
+            } else {
+                document.getElementById("loginError").style.display = "block";
+            }
+        }
+
+        function lockAdmin() {
+            document.getElementById("adminLoginBox").classList.remove("hidden");
+            document.getElementById("adminDashboardBox").classList.add("hidden");
+            toggleAdminPanel();
+        }
+
+        // Protección contra clics e inspecciones rápidas
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', event => {
+            if (event.keyCode == 123 || (event.ctrlKey && event.shiftKey && (event.keyCode == 73 || event.keyCode == 74)) || (event.ctrlKey && event.keyCode == 85)) {
+                event.preventDefault();
+                return false;
+            }
+        });
+
+        // Lluvia sutil de estrellas y anillos
+        const canvas = document.getElementById("particleCanvas");
+        const ctx = canvas.getContext("2d");
+        let w, h;
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+        window.addEventListener("resize", resize);
+        resize();
+
+        const particles = Array.from({length: 30}, () => ({
+            x: Math.random() * w, y: Math.random() * h,
+            r: Math.random() * 2 + 1, sy: Math.random() * 0.4 + 0.1, sx: (Math.random() - 0.5) * 0.2,
+            op: Math.random() * 0.5 + 0.3, isRing: Math.random() > 0.8
+        }));
+
+        function loop() {
+            ctx.clearRect(0, 0, w, h);
+            particles.forEach(p => {
+                p.y += p.sy; p.x += p.sx;
+                if(p.y > h) { p.y = -10; p.x = Math.random() * w; }
+                ctx.save(); ctx.globalAlpha = p.op;
+                if(p.isRing) {
+                    ctx.strokeStyle = "#D4AF37"; ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 2, 0, Math.PI * 2); ctx.stroke();
+                } else {
+                    ctx.fillStyle = "#F3E5AB";
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            });
+            requestAnimationFrame(loop);
+        }
+        loop();
+    </script>
+</body>
+</html>
